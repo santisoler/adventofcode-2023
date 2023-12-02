@@ -1,12 +1,12 @@
 # Solutions to Advent of Code 2023
 
-I challenged myself to solve this year AoC using Rust 🦀. I was in the middle
-of the [The Rust Programming Language](https://doc.rust-lang.org/book/) book
-when AoC started, so I was quite _rusty_ with the new language (and not in the
-best sense of the word).
+This year I wanted to solve AoC using Rust 🦀 for the [second year in
+a row][aoc-2022]. I didn't get the change to work
+too much with Rust during the year, so I found myself quite _rusty_.
+Keeping record of what I've learned last year is proving to be super useful.
 
-I'm quite proud that my code style improved a lot with each day, hope I can
-keep this trend 🤞. But I still have a lot to learn.
+I hope I can learn more stuff this year, and obviously to have the time to have
+fun with AoC 2023!
 
 
 ## How to run the solutions
@@ -45,3 +45,6 @@ cargo run
 Copyright © 2023 Santiago Soler
 
 Source code available through the [MIT License](LICENSE).
+
+
+[aoc-2022]: https://github.com/santisoler/adventofcode-2022
