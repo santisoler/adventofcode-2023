@@ -43,10 +43,39 @@ mod tests {
     }
 
     #[test]
+    fn test_game_minimum_set() {
+        let set1 = Set {
+            red: 3,
+            green: 4,
+            blue: 5,
+        };
+        let set2 = Set {
+            red: 5,
+            green: 2,
+            blue: 7,
+        };
+        let game = Game {
+            index: 0,
+            sets: vec![set1, set2],
+        };
+        let minimum_set = game.minimum_set();
+        assert_eq!(minimum_set.red, 5);
+        assert_eq!(minimum_set.green, 4);
+        assert_eq!(minimum_set.blue, 7);
+    }
+
+    #[test]
     fn test_part1() {
         let fname = String::from("data/test_input");
         let result = solve_part1(&fname);
         assert_eq!(result, 8);
+    }
+
+    #[test]
+    fn test_part2() {
+        let fname = String::from("data/test_input");
+        let result = solve_part2(&fname);
+        assert_eq!(result, 2286);
     }
 }
 
@@ -95,6 +124,18 @@ impl Game {
         }
         true
     }
+
+    /// Return the minimum set of cubes needed to play the game
+    fn minimum_set(&self) -> Set {
+        let reds: Vec<u32> = self.sets.iter().map(|x| x.red).collect();
+        let blues: Vec<u32> = self.sets.iter().map(|x| x.blue).collect();
+        let greens: Vec<u32> = self.sets.iter().map(|x| x.green).collect();
+        Set {
+            red: reds.iter().max().unwrap().to_owned(),
+            green: greens.iter().max().unwrap().to_owned(),
+            blue: blues.iter().max().unwrap().to_owned(),
+        }
+    }
 }
 
 fn read_file(fname: &String) -> String {
@@ -117,6 +158,18 @@ fn solve_part1(fname: &String) -> u32 {
         if game.is_possible(red_total, blue_total, green_total) {
             result += game.index
         }
+    }
+    result
+}
+
+fn solve_part2(fname: &String) -> u32 {
+    let content = read_file(fname);
+    let mut result = 0;
+    for line in content.lines() {
+        let game = parse_line(&line);
+        let minimum_set = game.minimum_set();
+        let product = minimum_set.red * minimum_set.green * minimum_set.blue;
+        result += product;
     }
     result
 }
@@ -166,4 +219,6 @@ fn main() {
     let fname = String::from("data/input");
     let result = solve_part1(&fname);
     println!("Solution to part 1: {}", result);
+    let result = solve_part2(&fname);
+    println!("Solution to part 2: {}", result);
 }
