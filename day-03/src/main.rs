@@ -135,8 +135,7 @@ fn solve_part1(fname: &String) -> u32 {
 }
 
 fn main() {
-    // let fname = String::from("data/input");
-    let fname = String::from("data/test_input");
+    let fname = String::from("data/input");
     let result = solve_part1(&fname);
     println!("Solution to part 1: {}", result);
     // let result = solve_part2(&fname);
