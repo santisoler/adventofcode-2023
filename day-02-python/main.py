@@ -2,6 +2,7 @@ from pathlib import Path
 from dataclasses import dataclass
 
 MAX_RED, MAX_GREEN, MAX_BLUE = 12, 13, 14
+DIR = Path(__file__).parent
 
 
 @dataclass
@@ -84,17 +85,17 @@ def solve_part2(fname) -> int:
 
 
 def test_part1():
-    fname = Path("..") / "day-02" / "data" / "test_input"
+    fname = DIR / ".." / "day-02" / "data" / "test_input"
     assert solve_part1(fname) == 8
 
 
 def test_part2():
-    fname = Path("..") / "day-02" / "data" / "test_input"
+    fname = DIR / ".." / "day-02" / "data" / "test_input"
     assert solve_part2(fname) == 2286
 
 
 if __name__ == "__main__":
-    fname = Path("..") / "day-02" / "data" / "input"
+    fname = DIR / ".." / "day-02" / "data" / "input"
     result = solve_part1(fname)
     print(f"Solution to part 1: {result}")
     result = solve_part2(fname)
