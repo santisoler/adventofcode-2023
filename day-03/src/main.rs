@@ -12,6 +12,13 @@ mod tests {
     }
 
     #[test]
+    fn test_part2() {
+        let fname = String::from("data/test_input");
+        let result = solve_part2(&fname);
+        assert_eq!(result, 467835);
+    }
+
+    #[test]
     fn test_get_single_part_number() {
         let mut array: Vec<Vec<u32>> =
             vec![vec![99, 99, 99, 99, 99, 99], vec![99, 1, 2, 3, 99, 99]];
@@ -44,14 +51,33 @@ fn char_to_number(x: &char) -> u32 {
     if *x == '.' {
         return 99;
     }
-    return 10;
+    if *x == '*' {
+        return 10;
+    }
+    return 11;
+}
+
+fn get_gear_ratii(array: &mut Vec<Vec<u32>>) -> Vec<u32> {
+    let mut gear_ratii: Vec<u32> = Vec::new();
+    for i in 0..array.len() {
+        for j in 0..array[i].len() {
+            if array[i][j] == 10 {
+                let part_numbers_for_symbol = get_part_numbers_for_symbol(array, &i, &j);
+                if part_numbers_for_symbol.len() == 2 {
+                    let gear_ratio = part_numbers_for_symbol.iter().product();
+                    gear_ratii.push(gear_ratio);
+                }
+            }
+        }
+    }
+    gear_ratii
 }
 
 fn get_part_numbers(array: &mut Vec<Vec<u32>>) -> Vec<u32> {
     let mut part_numbers: Vec<u32> = Vec::new();
     for i in 0..array.len() {
         for j in 0..array[i].len() {
-            if array[i][j] == 10 {
+            if array[i][j] > 9 && array[i][j] != 99 {
                 let mut part_numbers_for_symbol = get_part_numbers_for_symbol(array, &i, &j);
                 part_numbers.append(&mut part_numbers_for_symbol);
             }
@@ -134,10 +160,17 @@ fn solve_part1(fname: &String) -> u32 {
     part_numbers.iter().sum()
 }
 
+fn solve_part2(fname: &String) -> u32 {
+    let content = read_file(&fname);
+    let mut array = input_to_array(&content);
+    let gear_ratii = get_gear_ratii(&mut array);
+    gear_ratii.iter().sum()
+}
+
 fn main() {
     let fname = String::from("data/input");
     let result = solve_part1(&fname);
     println!("Solution to part 1: {}", result);
-    // let result = solve_part2(&fname);
-    // println!("Solution to part 2: {}", result);
+    let result = solve_part2(&fname);
+    println!("Solution to part 2: {}", result);
 }
