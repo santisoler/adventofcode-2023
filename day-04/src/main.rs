@@ -87,15 +87,15 @@ fn solve_part2(fname: &String) -> u32 {
     let cards: Vec<Scratchcard> = content.lines().map(|x| parse_line(&x)).collect();
     let mut copies: Vec<u32> = vec![0; cards.len()];
     for (i, card) in cards.iter().enumerate() {
-        let matching_numbers = card.matching_numbers();
-        for j in i + 1..i + matching_numbers as usize + 1 {
+        let matching_numbers = card.matching_numbers() as usize;
+        for j in i + 1..i + matching_numbers + 1 {
             copies[j] += 1 + copies[i]
         }
     }
     // Count total number of cards (including original and copies)
     let n_copies: u32 = copies.iter().sum();
-    let n_cards = cards.len() as u32;
-    let total_scratchcards = n_cards + n_copies;
+    let n_originals = cards.len() as u32;
+    let total_scratchcards = n_originals + n_copies;
     total_scratchcards
 }
 
