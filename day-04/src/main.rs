@@ -10,6 +10,13 @@ mod tests {
         let result = solve_part1(&fname);
         assert_eq!(result, 13);
     }
+
+    #[test]
+    fn test_part2() {
+        let fname = String::from("data/test_input");
+        let result = solve_part2(&fname);
+        assert_eq!(result, 30);
+    }
 }
 
 #[derive(Debug)]
@@ -19,17 +26,22 @@ struct Scratchcard {
 }
 
 impl Scratchcard {
-    fn points(&self) -> u32 {
-        let mut hits = 0;
+    fn matching_numbers(&self) -> u32 {
+        let mut matching_numbers = 0;
         for number in self.numbers.iter() {
             if self.winning.contains(&number) {
-                hits += 1
+                matching_numbers += 1
             }
         }
-        if hits < 2 {
-            return hits;
+        matching_numbers
+    }
+
+    fn points(&self) -> u32 {
+        let matching_numbers = self.matching_numbers();
+        if matching_numbers < 2 {
+            return matching_numbers;
         }
-        2_u32.pow(hits - 1)
+        2_u32.pow(matching_numbers - 1)
     }
 }
 
@@ -70,8 +82,27 @@ fn solve_part1(fname: &String) -> u32 {
     points
 }
 
+fn solve_part2(fname: &String) -> u32 {
+    let content = read_file(fname);
+    let cards: Vec<Scratchcard> = content.lines().map(|x| parse_line(&x)).collect();
+    let mut copies: Vec<u32> = vec![0; cards.len()];
+    for (i, card) in cards.iter().enumerate() {
+        let matching_numbers = card.matching_numbers();
+        for j in i + 1..i + matching_numbers as usize + 1 {
+            copies[j] += 1 + copies[i]
+        }
+    }
+    // Count total number of cards (including original and copies)
+    let n_copies: u32 = copies.iter().sum();
+    let n_cards = cards.len() as u32;
+    let total_scratchcards = n_cards + n_copies;
+    total_scratchcards
+}
+
 fn main() {
     let fname = String::from("data/input");
     let result = solve_part1(&fname);
     println!("Solution to part 1: {}", result);
+    let result = solve_part2(&fname);
+    println!("Solution to part 2: {}", result);
 }
