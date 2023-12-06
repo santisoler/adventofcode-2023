@@ -1,6 +1,4 @@
-use std::collections::HashMap;
 use std::fs;
-use std::ops::RangeInclusive;
 
 #[cfg(test)]
 mod tests {
@@ -9,8 +7,8 @@ mod tests {
     #[test]
     fn test_map() {
         let mut map = Map::new();
-        map.insert(50, 98, 2);
-        map.insert(52, 50, 48);
+        map.push(50, 98, 2);
+        map.push(52, 50, 48);
         assert_eq!(map.get(&0), 0);
         assert_eq!(map.get(&1), 1);
         assert_eq!(map.get(&48), 48);
@@ -24,6 +22,17 @@ mod tests {
     }
 
     #[test]
+    fn test_locations() {
+        let fname = String::from("data/test_input");
+        let content = read_file(&fname);
+        let (seeds, maps) = parse_input(&content);
+        assert_eq!(get_location(&seeds[0], &maps), 82);
+        assert_eq!(get_location(&seeds[1], &maps), 43);
+        assert_eq!(get_location(&seeds[2], &maps), 86);
+        assert_eq!(get_location(&seeds[3], &maps), 35);
+    }
+
+    #[test]
     fn test_part1() {
         let fname = String::from("data/test_input");
         let result = solve_part1(&fname);
@@ -32,26 +41,30 @@ mod tests {
 }
 
 #[derive(Debug)]
+struct Rule {
+    dest: u32,
+    source: u32,
+    len: u32,
+}
+
+#[derive(Debug)]
 struct Map {
-    ranges: HashMap<RangeInclusive<u32>, u32>,
+    rules: Vec<Rule>,
 }
 
 impl Map {
     fn new() -> Self {
-        Self {
-            ranges: HashMap::new(),
-        }
+        Self { rules: Vec::new() }
     }
 
-    fn insert(&mut self, dest: u32, source: u32, len: u32) {
-        let range = RangeInclusive::new(source, source + len);
-        self.ranges.insert(range, dest);
+    fn push(&mut self, dest: u32, source: u32, len: u32) {
+        self.rules.push(Rule { dest, source, len })
     }
 
     fn get(&self, value: &u32) -> u32 {
-        for (range, dest) in self.ranges.iter() {
-            if range.contains(&value) {
-                return *value - range.start() + dest;
+        for rule in self.rules.iter() {
+            if (rule.source <= *value) & (*value < rule.source + rule.len) {
+                return *value - rule.source + rule.dest;
             }
         }
         *value
@@ -93,7 +106,7 @@ fn parse_input(content: &String) -> (Vec<u32>, Vec<Map>) {
         // Read mappings
         while !line.is_empty() {
             let map_values: Vec<u32> = line.split(" ").map(|x| x.parse().unwrap()).collect();
-            map.insert(map_values[0], map_values[1], map_values[2]);
+            map.push(map_values[0], map_values[1], map_values[2]);
             let next_line = lines.next();
             if next_line.is_none() {
                 eof = true;
@@ -125,7 +138,16 @@ fn solve_part1(fname: &String) -> u32 {
 }
 
 fn main() {
-    let fname = String::from("data/input");
+    // let fname = String::from("data/input");
+    let fname = String::from("data/test_input");
+
+    let content = read_file(&fname);
+    let (seeds, maps) = parse_input(&content);
+
+    for map in maps.iter() {
+        println!("{:?}", map)
+    }
+
     let result = solve_part1(&fname);
     println!("Solution to part 1: {}", result);
 }
