@@ -63,7 +63,8 @@ impl Map {
 
     fn get(&self, value: &u32) -> u32 {
         for rule in self.rules.iter() {
-            if (rule.source <= *value) & (*value < rule.source + rule.len) {
+            // Use double && to not check second branch if the first one is false
+            if (rule.source <= *value) && (*value - rule.source < rule.len) {
                 return *value - rule.source + rule.dest;
             }
         }
@@ -138,16 +139,7 @@ fn solve_part1(fname: &String) -> u32 {
 }
 
 fn main() {
-    // let fname = String::from("data/input");
-    let fname = String::from("data/test_input");
-
-    let content = read_file(&fname);
-    let (seeds, maps) = parse_input(&content);
-
-    for map in maps.iter() {
-        println!("{:?}", map)
-    }
-
+    let fname = String::from("data/input");
     let result = solve_part1(&fname);
     println!("Solution to part 1: {}", result);
 }
