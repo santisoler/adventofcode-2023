@@ -8,14 +8,14 @@ mod tests {
     #[test]
     fn test_part1() {
         let fname = String::from("data/test_input");
-        let result = solve_part1(&fname);
+        let result = solve_part1_brute_force(&fname);
         assert_eq!(result, 288);
     }
 
     #[test]
     fn test_part2() {
         let fname = String::from("data/test_input");
-        let result = solve_part2(&fname);
+        let result = solve_part2_brute_force(&fname);
         assert_eq!(result, 71503);
     }
 
@@ -131,7 +131,7 @@ fn binary_search(time: &u64, distance_record: &u64) -> u64 {
     // (middle - min_time) * 2
 }
 
-fn solve_part1(fname: &String) -> u64 {
+fn solve_part1_brute_force(fname: &String) -> u64 {
     let content = read_file(fname);
     let (times, distances) = parse_file_part1(&content);
     let mut result = 1;
@@ -141,7 +141,17 @@ fn solve_part1(fname: &String) -> u64 {
     result
 }
 
-fn solve_part2(fname: &String) -> u64 {
+fn solve_part1_binary_search(fname: &String) -> u64 {
+    let content = read_file(fname);
+    let (times, distances) = parse_file_part1(&content);
+    let mut result = 1;
+    for (time, distance_record) in zip(times, distances) {
+        result *= binary_search(&time, &distance_record);
+    }
+    result
+}
+
+fn solve_part2_brute_force(fname: &String) -> u64 {
     let content = read_file(fname);
     let (time, distance_record) = parse_file_part2(&content);
     let result = get_number_winning_solutions(&time, &distance_record);
@@ -159,13 +169,19 @@ fn main() {
     let fname = String::from("data/input");
 
     let now = Instant::now();
-    let result = solve_part1(&fname);
+    let result = solve_part1_brute_force(&fname);
     let elapsed = now.elapsed();
-    println!("Solution to part 1: {}", result);
+    println!("Solution to part 1 (brute force): {}", result);
     println!("Elapsed: {:.2?}", elapsed);
 
     let now = Instant::now();
-    let result = solve_part2(&fname);
+    let result = solve_part1_binary_search(&fname);
+    let elapsed = now.elapsed();
+    println!("Solution to part 1 (binary search): {}", result);
+    println!("Elapsed: {:.2?}", elapsed);
+
+    let now = Instant::now();
+    let result = solve_part2_brute_force(&fname);
     let elapsed = now.elapsed();
     println!("Solution to part 2 (brute force): {}", result);
     println!("Elapsed: {:.2?}", elapsed);
