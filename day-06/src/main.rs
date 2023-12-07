@@ -128,7 +128,6 @@ fn binary_search(time: &u64, distance_record: &u64) -> u64 {
         result -= 1
     };
     result
-    // (middle - min_time) * 2
 }
 
 fn solve_part1_brute_force(fname: &String) -> u64 {
