@@ -6,14 +6,21 @@ mod tests {
     use crate::*;
 
     #[test]
-    fn test_part1() {
+    fn test_part1_brute_force() {
         let fname = String::from("data/test_input");
         let result = solve_part1_brute_force(&fname);
         assert_eq!(result, 288);
     }
 
     #[test]
-    fn test_part2() {
+    fn test_part1_binary_search() {
+        let fname = String::from("data/test_input");
+        let result = solve_part1_binary_search(&fname);
+        assert_eq!(result, 288);
+    }
+
+    #[test]
+    fn test_part2_brute_force() {
         let fname = String::from("data/test_input");
         let result = solve_part2_brute_force(&fname);
         assert_eq!(result, 71503);
