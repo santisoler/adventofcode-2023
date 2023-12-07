@@ -1,3 +1,4 @@
+use std::time::Instant;
 use std::{fs, iter::zip};
 
 #[cfg(test)]
@@ -15,6 +16,13 @@ mod tests {
     fn test_part2() {
         let fname = String::from("data/test_input");
         let result = solve_part2(&fname);
+        assert_eq!(result, 71503);
+    }
+
+    #[test]
+    fn test_part2_binary_search() {
+        let fname = String::from("data/test_input");
+        let result = solve_part2_binary_search(&fname);
         assert_eq!(result, 71503);
     }
 }
@@ -87,6 +95,42 @@ fn get_number_winning_solutions(time: &u64, distance_record: &u64) -> u64 {
     n_winning_solutions
 }
 
+fn get_distance(hold_time: &u64, total_time: &u64) -> u64 {
+    *hold_time * (*total_time - *hold_time)
+}
+
+fn binary_search(time: &u64, distance_record: &u64) -> u64 {
+    let min_time = time.div_ceil(2);
+    let max_time = *time;
+    let mut left = max_time;
+    let mut right = min_time;
+    let mut middle: u64;
+    loop {
+        if left < right {
+            panic!("Unsuccessful")
+        }
+        middle = (left + right) / 2;
+        let distance = get_distance(&middle, time);
+        if distance < *distance_record {
+            left = middle - 1;
+        } else if distance > *distance_record {
+            right = middle + 1;
+        } else {
+            break;
+        }
+        if left + 1 == right {
+            middle = right;
+            break;
+        }
+    }
+    let mut result = 2 * (middle - min_time);
+    if time % 2 == 0 {
+        result -= 1
+    };
+    result
+    // (middle - min_time) * 2
+}
+
 fn solve_part1(fname: &String) -> u64 {
     let content = read_file(fname);
     let (times, distances) = parse_file_part1(&content);
@@ -104,10 +148,31 @@ fn solve_part2(fname: &String) -> u64 {
     result
 }
 
+fn solve_part2_binary_search(fname: &String) -> u64 {
+    let content = read_file(fname);
+    let (time, distance_record) = parse_file_part2(&content);
+    let result = binary_search(&time, &distance_record);
+    result
+}
+
 fn main() {
     let fname = String::from("data/input");
+
+    let now = Instant::now();
     let result = solve_part1(&fname);
+    let elapsed = now.elapsed();
     println!("Solution to part 1: {}", result);
+    println!("Elapsed: {:.2?}", elapsed);
+
+    let now = Instant::now();
     let result = solve_part2(&fname);
-    println!("Solution to part 2: {}", result);
+    let elapsed = now.elapsed();
+    println!("Solution to part 2 (brute force): {}", result);
+    println!("Elapsed: {:.2?}", elapsed);
+
+    let now = Instant::now();
+    let result = solve_part2_binary_search(&fname);
+    let elapsed = now.elapsed();
+    println!("Solution to part 2 (binary search): {}", result);
+    println!("Elapsed: {:.2?}", elapsed);
 }
