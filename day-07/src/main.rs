@@ -56,7 +56,7 @@ struct Hand {
 }
 
 impl Hand {
-    fn get_cards_frequency(&self) -> Vec<usize> {
+    fn get_cards_frequencies(&self) -> Vec<usize> {
         let mut card_counts: Vec<usize> = self
             .cards
             .iter()
@@ -80,8 +80,8 @@ impl Eq for Hand {}
 
 impl Ord for Hand {
     fn cmp(&self, other: &Self) -> Ordering {
-        let self_freqs = self.get_cards_frequency();
-        let other_freqs = other.get_cards_frequency();
+        let self_freqs = self.get_cards_frequencies();
+        let other_freqs = other.get_cards_frequencies();
         match self_freqs.cmp(&other_freqs) {
             Ordering::Less => Ordering::Less,
             Ordering::Greater => Ordering::Greater,
