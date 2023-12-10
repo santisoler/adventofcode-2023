@@ -21,6 +21,20 @@ mod tests {
     }
 
     #[test]
+    fn test_hand_frequencies() {
+        let hand = Hand {
+            cards: vec![2, 1, 2, 2, 3],
+            bid: 5,
+        };
+        assert_eq!(hand.get_cards_frequencies(), [4, 1]);
+        let hand = Hand {
+            cards: vec![1, 1, 1, 1, 1],
+            bid: 5,
+        };
+        assert_eq!(hand.get_cards_frequencies(), [5]);
+    }
+
+    #[test]
     fn test_hands_comparison_2() {
         let hand1 = Hand {
             cards: vec![2, 1, 2, 2, 3],
@@ -46,24 +60,35 @@ impl Hand {
         // Get card counter
         let mut card_counter = self.cards.iter().collect::<Counter<_>>();
         // Replace jokers to get the best hand
-        match card_counter.remove(&1_u8) {
-            Some(n_jokers) => {
-                let most_freq_card = *card_counter
-                    .iter()
-                    .max_by(|a, b| a.1.cmp(&b.1))
-                    .map(|(k, _v)| k)
-                    .unwrap();
-                *card_counter.get_mut(most_freq_card).unwrap() += n_jokers;
-            }
-            None => (),
+        let n_jokers = match card_counter.get_mut(&1_u8) {
+            Some(x) => x.to_owned(),
+            None => 0,
         };
-
+        if n_jokers > 0 && n_jokers < 5 {
+            let most_freq_card = get_most_frequent_card(&card_counter);
+            if let Some(x) = card_counter.get_mut(&most_freq_card) {
+                *x += n_jokers;
+            }
+            card_counter.remove(&1_u8).unwrap();
+        }
         // Sort out amount of cards of same value
         let mut card_counts: Vec<usize> = card_counter.values().map(|x| *x).collect();
         card_counts.sort();
         card_counts.reverse();
         card_counts
     }
+}
+
+fn get_most_frequent_card(card_counter: &Counter<&u8>) -> u8 {
+    let mut max_freq = 0;
+    let mut most_freq_card: u8 = 0;
+    for (card, freq) in card_counter.iter() {
+        if *freq > max_freq {
+            most_freq_card = **card;
+            max_freq = *freq;
+        }
+    }
+    most_freq_card
 }
 
 impl PartialEq for Hand {
