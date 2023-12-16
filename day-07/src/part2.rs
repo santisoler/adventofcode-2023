@@ -61,7 +61,7 @@ impl Hand {
         let mut card_counter = self.cards.iter().collect::<Counter<_>>();
         // Replace jokers to get the best hand
         let n_jokers = match card_counter.get_mut(&1_u8) {
-            Some(x) => x.to_owned(),
+            Some(x) => *x,
             None => 0,
         };
         if n_jokers > 0 && n_jokers < 5 {
@@ -149,6 +149,7 @@ pub fn solve_part2(fname: &String) -> u32 {
     hands.sort();
     let mut result = 0;
     for (i, hand) in hands.iter().enumerate() {
+        println!("{:?}", hand);
         result += (i + 1) as u32 * hand.bid
     }
     result
