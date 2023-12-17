@@ -1,23 +1,19 @@
 use crate::utils::read_file;
-use counter::Counter;
-use std::cmp::Ordering;
+use std::{cmp::Ordering, collections::HashMap};
 
 #[cfg(test)]
 mod tests {
-    use crate::part2::Hand;
+    use crate::part2::{count_cards, Hand};
+    use std::collections::HashMap;
 
     #[test]
-    fn test_hands_comparison_1() {
-        let hand1 = Hand {
-            cards: vec![2, 1, 2, 2, 3],
-            bid: 5,
-        };
-        let hand2 = Hand {
-            cards: vec![2, 2, 2, 2, 3],
-            bid: 3,
-        };
-        assert!(hand2 > hand1);
-        assert!(hand1 < hand2);
+    fn test_card_counts_1() {
+        let cards: Vec<u8> = vec![2, 1, 2, 2, 3];
+        let mut expected: HashMap<u8, usize> = HashMap::new();
+        expected.insert(2, 3);
+        expected.insert(1, 1);
+        expected.insert(3, 1);
+        assert_eq!(count_cards(&cards), expected);
     }
 
     #[test]
@@ -35,7 +31,49 @@ mod tests {
     }
 
     #[test]
+    fn test_hands_comparison_1() {
+        let hand1 = Hand {
+            cards: vec![2, 1, 2, 2, 3],
+            bid: 5,
+        };
+        let hand2 = Hand {
+            cards: vec![2, 2, 2, 2, 3],
+            bid: 3,
+        };
+        assert!(hand2 > hand1);
+        assert!(hand1 < hand2);
+    }
+
+    #[test]
     fn test_hands_comparison_2() {
+        let hand1 = Hand {
+            cards: vec![3, 2, 10, 3, 12],
+            bid: 5,
+        };
+        let hand3 = Hand {
+            cards: vec![10, 5, 5, 1, 5],
+            bid: 3,
+        };
+        let hand2 = Hand {
+            cards: vec![12, 12, 6, 7, 7],
+            bid: 3,
+        };
+        let hand5 = Hand {
+            cards: vec![12, 10, 1, 1, 10],
+            bid: 3,
+        };
+        let hand4 = Hand {
+            cards: vec![11, 11, 11, 1, 13],
+            bid: 3,
+        };
+        assert!(hand1 < hand2);
+        assert!(hand2 < hand3);
+        assert!(hand3 < hand4);
+        assert!(hand4 < hand5);
+    }
+
+    #[test]
+    fn test_hands_comparison_3() {
         let hand1 = Hand {
             cards: vec![2, 1, 2, 2, 3],
             bid: 5,
@@ -57,10 +95,10 @@ struct Hand {
 
 impl Hand {
     fn get_cards_frequencies(&self) -> Vec<usize> {
-        // Get card counter
-        let mut card_counter = self.cards.iter().collect::<Counter<_>>();
+        // Count cards
+        let mut card_counter = count_cards(&self.cards);
         // Replace jokers to get the best hand
-        let n_jokers = match card_counter.get_mut(&1_u8) {
+        let n_jokers = match card_counter.get_mut(&1) {
             Some(x) => *x,
             None => 0,
         };
@@ -69,8 +107,8 @@ impl Hand {
             if let Some(x) = card_counter.get_mut(&most_freq_card) {
                 *x += n_jokers;
             }
-            card_counter.remove(&1_u8).unwrap();
-        }
+            card_counter.remove(&1);
+        };
         // Sort out amount of cards of same value
         let mut card_counts: Vec<usize> = card_counter.values().map(|x| *x).collect();
         card_counts.sort();
@@ -79,12 +117,25 @@ impl Hand {
     }
 }
 
-fn get_most_frequent_card(card_counter: &Counter<&u8>) -> u8 {
+fn count_cards(cards: &Vec<u8>) -> HashMap<u8, usize> {
+    let mut card_counts = HashMap::new();
+    for card in cards.iter() {
+        match card_counts.get_mut(card) {
+            Some(count) => *count += 1,
+            None => {
+                card_counts.insert(*card, 1);
+            }
+        }
+    }
+    card_counts
+}
+
+fn get_most_frequent_card(card_counter: &HashMap<u8, usize>) -> u8 {
     let mut max_freq = 0;
     let mut most_freq_card: u8 = 0;
     for (card, freq) in card_counter.iter() {
-        if *freq > max_freq {
-            most_freq_card = **card;
+        if *card != 1 && *freq > max_freq {
+            most_freq_card = *card;
             max_freq = *freq;
         }
     }
@@ -149,7 +200,6 @@ pub fn solve_part2(fname: &String) -> u32 {
     hands.sort();
     let mut result = 0;
     for (i, hand) in hands.iter().enumerate() {
-        println!("{:?}", hand);
         result += (i + 1) as u32 * hand.bid
     }
     result

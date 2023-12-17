@@ -28,8 +28,6 @@ fn main() {
     let fname = String::from("data/input");
     let result = solve_part1(&fname);
     println!("Solution to part 1: {}", result);
-
-    let fname = String::from("data/test_input");
     let result = solve_part2(&fname);
     println!("Solution to part 2: {}", result);
 }
