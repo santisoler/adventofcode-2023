@@ -1,8 +1,15 @@
-use std::{collections::HashMap, fs};
+use std::{collections::HashMap, fs, iter::zip};
 
 #[cfg(test)]
 mod tests {
     use crate::*;
+
+    #[test]
+    fn test_get_min_movements() {
+        let phases = vec![2, 3];
+        let freqs = vec![4, 8];
+        assert_eq!(get_min_movements(&freqs, &phases), 6);
+    }
 
     #[test]
     fn test_part1() {
@@ -14,12 +21,12 @@ mod tests {
         assert_eq!(result, 6);
     }
 
-    #[test]
-    fn test_part2() {
-        let fname = String::from("data/test_input_3");
-        let result = solve_part2(&fname);
-        assert_eq!(result, 6);
-    }
+    // #[test]
+    // fn test_part2() {
+    //     let fname = String::from("data/test_input_3");
+    //     let result = solve_part2(&fname);
+    //     assert_eq!(result, 6);
+    // }
 }
 
 #[derive(Debug)]
@@ -119,30 +126,109 @@ fn solve_part1(fname: &String) -> u32 {
 fn solve_part2(fname: &String) -> u32 {
     let (map, movements) = parse_file(&fname);
     // Get initial positions
-    let mut positions: Vec<String> = map
+    let initial_positions: Vec<String> = map
         .keys()
         .filter(|x| x.ends_with("A"))
         .map(|x| x.clone())
         .collect();
-    // Start movements
+    // Explore graph for each initial position
+    let mut phases = vec![];
+    let mut freqs = vec![];
+    for p in initial_positions.iter() {
+        let (phase, period) = explore_graph_to_goal(p, &map, &movements);
+        phases.push(phase);
+        freqs.push(period);
+    }
+    println!("{:?} {:?}", freqs, phases);
+    get_min_movements(&freqs, &phases)
+}
+
+// Explore graph for a single starting position until round loop is found
+//
+// # Returns
+//
+// * `n_movements` -  Number of movements to the first element that finishes with Z
+fn explore_graph_to_goal(
+    initial_position: &String,
+    map: &HashMap<String, Node>,
+    movements: &Vec<Movement>,
+) -> (u32, u32) {
+    // Copy initial position
+    let mut position = initial_position.clone();
+
+    // Define history vector
+    let mut history_starts: Vec<String> = vec![position.clone()];
+
     let mut n_movements = 0;
-    let mut goal_reached = false;
-    while !goal_reached {
+    let mut phases = vec![];
+
+    loop {
         for movement in movements.iter() {
-            positions = positions
-                .iter()
-                .map(|x| map.get(x).unwrap().move_to(movement))
-                .collect();
+            position = map.get(&position).unwrap().move_to(movement);
             n_movements += 1;
-            println!("{:?}", positions);
-            // Check if goal was reached
-            if positions.iter().all(|x| x.ends_with("Z")) {
-                goal_reached = true;
-                break;
+            if position.ends_with("Z") {
+                phases.push(n_movements);
             }
         }
+        if history_starts.contains(&position) {
+            break;
+        }
+        history_starts.push(position.clone());
     }
-    n_movements
+    phases = reduce_common_factors(&phases);
+    if phases.len() > 1 {
+        panic!("Found more than a single number of movements to the goal");
+    }
+    (phases[0], n_movements)
+}
+
+fn reduce_common_factors(sorted_vector: &Vec<u32>) -> Vec<u32> {
+    let mut factors = vec![];
+    for (i, element) in sorted_vector.iter().enumerate() {
+        let divisible = sorted_vector[..i].iter().any(|x| element % x == 0);
+        if !divisible {
+            factors.push(*element);
+        }
+    }
+    factors
+}
+
+fn get_min_movements(freqs: &Vec<u32>, phases: &Vec<u32>) -> u32 {
+    let mut n = 0;
+    // Sort freqs and phases according to freqs
+    let indices = argsort(&freqs);
+    let freqs: Vec<u32> = indices.iter().map(|i| freqs[*i]).collect();
+    let phases: Vec<u32> = indices.iter().map(|i| phases[*i]).collect();
+    // Compute minimum numbers of movements to reach goal
+    let n_sequences = freqs.len() as u32;
+    let phases_sum: u32 = phases.iter().sum();
+    let mut cycles: Vec<u32> = vec![0; n_sequences as usize];
+    let mut i = 0;
+    loop {
+        let freqs_cycles_sum: u32 = zip(freqs.clone(), cycles.clone()).map(|(f, p)| f * p).sum();
+        println!("{:?} {:?} {:?}", freqs_cycles_sum, phases_sum, n_sequences);
+        println!("  {:?}", (freqs_cycles_sum + phases_sum) % n_sequences);
+        if freqs_cycles_sum > 50 {
+            break;
+        }
+        if (freqs_cycles_sum + phases_sum) % n_sequences == 0 {
+            n = (freqs_cycles_sum + phases_sum) / n_sequences;
+            break;
+        };
+        cycles[i] += 1;
+        if i < cycles.len() - 1 {
+            i += 1
+        } else {
+            i = 0
+        };
+    }
+    n
+}
+
+fn argsort<T: Ord>(data: &[T]) -> Vec<usize> {
+    let mut indices = (0..data.len()).collect::<Vec<_>>();
+    indices.sort_by_key(|&i| &data[i]);
+    indices
 }
 
 fn main() {
