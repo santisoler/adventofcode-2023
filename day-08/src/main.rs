@@ -14,18 +14,27 @@ mod tests {
         assert_eq!(result, 6);
     }
 
-    // #[test]
-    // fn test_part2() {
-    //     let fname = String::from("data/test_input");
-    //     let result = solve_part2(&fname);
-    //     assert_eq!(result, 30);
-    // }
+    #[test]
+    fn test_part2() {
+        let fname = String::from("data/test_input_3");
+        let result = solve_part2(&fname);
+        assert_eq!(result, 6);
+    }
 }
 
 #[derive(Debug)]
 struct Node {
     left: String,
     right: String,
+}
+
+impl Node {
+    fn move_to(&self, movement: &Movement) -> String {
+        match movement {
+            Movement::Left => self.left.clone(),
+            Movement::Right => self.right.clone(),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -90,14 +99,47 @@ fn solve_part1(fname: &String) -> u32 {
     let (map, movements) = parse_file(&fname);
     let mut n_movements = 0;
     let mut position = String::from("AAA");
-    while position != String::from("ZZZ") {
+    let goal = String::from("ZZZ");
+    let mut goal_reached = false;
+    while !goal_reached {
         for movement in movements.iter() {
             let current_node = map.get(&position).unwrap();
-            position = match movement {
-                Movement::Left => current_node.left.clone(),
-                Movement::Right => current_node.right.clone(),
-            };
+            position = current_node.move_to(movement);
             n_movements += 1;
+            // Check if goal was reached
+            if position == goal {
+                goal_reached = true;
+                break;
+            }
+        }
+    }
+    n_movements
+}
+
+fn solve_part2(fname: &String) -> u32 {
+    let (map, movements) = parse_file(&fname);
+    // Get initial positions
+    let mut positions: Vec<String> = map
+        .keys()
+        .filter(|x| x.ends_with("A"))
+        .map(|x| x.clone())
+        .collect();
+    // Start movements
+    let mut n_movements = 0;
+    let mut goal_reached = false;
+    while !goal_reached {
+        for movement in movements.iter() {
+            positions = positions
+                .iter()
+                .map(|x| map.get(x).unwrap().move_to(movement))
+                .collect();
+            n_movements += 1;
+            println!("{:?}", positions);
+            // Check if goal was reached
+            if positions.iter().all(|x| x.ends_with("Z")) {
+                goal_reached = true;
+                break;
+            }
         }
     }
     n_movements
@@ -107,6 +149,7 @@ fn main() {
     let fname = String::from("data/input");
     let result = solve_part1(&fname);
     println!("Solution to part 1: {}", result);
-    // let result = solve_part2(&fname);
-    // println!("Solution to part 2: {}", result);
+    let fname = String::from("data/test_input_3");
+    let result = solve_part2(&fname);
+    println!("Solution to part 2: {}", result);
 }
