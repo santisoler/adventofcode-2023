@@ -1,3 +1,4 @@
+use num::integer::lcm;
 use std::{collections::HashMap, fs};
 
 #[cfg(test)]
@@ -95,7 +96,7 @@ fn parse_line(line: &str) -> (String, Node) {
     (position, node)
 }
 
-fn solve_part1(fname: &String) -> u32 {
+fn solve_part1(fname: &String) -> u64 {
     let (map, movements) = parse_file(&fname);
     let mut n_movements = 0;
     let mut position = String::from("AAA");
@@ -116,27 +117,40 @@ fn solve_part1(fname: &String) -> u32 {
     n_movements
 }
 
-fn solve_part2(fname: &String) -> u32 {
+fn solve_part2(fname: &String) -> u64 {
     let (map, movements) = parse_file(&fname);
     // Get initial positions
-    let mut positions: Vec<String> = map
+    let initial_positions: Vec<String> = map
         .keys()
         .filter(|x| x.ends_with("A"))
         .map(|x| x.clone())
         .collect();
-    // Start movements
+    // Explore graph for each initial position
+    let n_movements: Vec<u64> = initial_positions
+        .iter()
+        .map(|p| get_movements_until_goal(p, &map, &movements))
+        .collect();
+    let mut result = 1;
+    for item in n_movements.iter() {
+        result = lcm(result, *item);
+    }
+    result
+}
+
+fn get_movements_until_goal(
+    position: &String,
+    map: &HashMap<String, Node>,
+    movements: &Vec<Movement>,
+) -> u64 {
+    let mut position = position.clone();
     let mut n_movements = 0;
     let mut goal_reached = false;
     while !goal_reached {
         for movement in movements.iter() {
-            positions = positions
-                .iter()
-                .map(|x| map.get(x).unwrap().move_to(movement))
-                .collect();
+            position = map.get(&position).unwrap().move_to(movement);
             n_movements += 1;
-            println!("{:?}", positions);
             // Check if goal was reached
-            if positions.iter().all(|x| x.ends_with("Z")) {
+            if position.ends_with("Z") {
                 goal_reached = true;
                 break;
             }
@@ -149,7 +163,6 @@ fn main() {
     let fname = String::from("data/input");
     let result = solve_part1(&fname);
     println!("Solution to part 1: {}", result);
-    let fname = String::from("data/test_input_3");
     let result = solve_part2(&fname);
     println!("Solution to part 2: {}", result);
 }
