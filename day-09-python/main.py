@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 
 def test_part1():
-    fname = Path(__file__).parent / ".." / "day-09" / "data" / "test_input"
+    fname = Path(__file__).parent / "data" / "test_input"
     assert solve_part1(fname) == 114
 
 
@@ -45,6 +45,6 @@ def solve_part1(fname: Path) -> int:
 
 
 if __name__ == "__main__":
-    fname = Path(__file__).parent / ".." / "day-09" / "data" / "input"
+    fname = Path(__file__).parent / "data" / "input"
     result = solve_part1(fname)
     print(f"Solution to part 1: {result}")
