@@ -7,6 +7,11 @@ def test_part1():
     assert solve_part1(fname) == 114
 
 
+def test_part2():
+    fname = Path(__file__).parent / "data" / "test_input"
+    assert solve_part2(fname) == 2
+
+
 @dataclass
 class Row:
     values: list[int]
@@ -27,6 +32,14 @@ class Row:
             value = self.values[-1] + self.child.values[-1]
         self.values.append(value)
 
+    def extrapolate_backward(self):
+        if self.child is None:
+            value = 0
+        else:
+            self.child.extrapolate_backward()
+            value = self.values[0] - self.child.values[0]
+        self.values.insert(0, value)
+
 
 def diff(values):
     diff = [values[i + 1] - values[i] for i in range(len(values) - 1)]
@@ -44,7 +57,20 @@ def solve_part1(fname: Path) -> int:
     return result
 
 
+def solve_part2(fname: Path) -> int:
+    with open(fname, "r") as f:
+        input = [[int(n) for n in line.split()] for line in f]
+    trees = [Row.create(row) for row in input]
+    result = 0
+    for tree in trees:
+        tree.extrapolate_backward()
+        result += tree.values[0]
+    return result
+
+
 if __name__ == "__main__":
     fname = Path(__file__).parent / "data" / "input"
     result = solve_part1(fname)
     print(f"Solution to part 1: {result}")
+    result = solve_part2(fname)
+    print(f"Solution to part 2: {result}")
