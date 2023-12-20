@@ -1,33 +1,28 @@
+"""
+More efficient solution to day 12
+
+Based on the code of HyperNeutrino: https://www.youtube.com/watch?v=g3Ms5e7Jdqo
+
+It took me more time that I would like to admit to understand this solution.
+Thanks to HyperNeutrino for making a nice explained video with a super clean
+code.
+"""
 import pytest
 from pathlib import Path
-from dataclasses import dataclass
 
 
-class TestCondition:
-    def test_invalid_with_unknowns(self):
-        condition = Condition("##.?.?", [2, 1, 1])
-        with pytest.raises(ValueError):
-            condition.is_valid()
-
-    def test_valid(self):
-        condition = Condition("...##..#..#.", [2, 1, 1])
-        assert condition.is_valid()
-
-    def test_invalid(self):
-        condition = Condition("...#...#..#.", [2, 1, 1])
-        assert not condition.is_valid()
-
-    def test_n_arrangements_trivial(self):
-        condition = Condition("????.#...#...", [4, 1, 1])
-        assert condition.n_arrangements == 1
-
-    def test_n_arrangements_1(self):
-        condition = Condition("????.######..#####.", [1, 6, 5])
-        assert condition.n_arrangements == 4
-
-    def test_n_arrangements_2(self):
-        condition = Condition("?###????????", [3, 2, 1])
-        assert condition.n_arrangements == 10
+@pytest.mark.parametrize(
+    "springs, hints, expected",
+    [
+        ["?##", (3,), 1],
+        ["??#", (3,), 1],
+        ["???", (3,), 1],
+        ["?#??..#", (3, 1), 2],
+        ["?#??.#", (3, 1), 2],
+    ],
+)
+def test_possible_arrangements(springs, hints, expected):
+    assert n_arrangements(springs, hints) == expected
 
 
 def test_part1():
@@ -35,76 +30,57 @@ def test_part1():
     assert solve_part1(fname) == 21
 
 
-@dataclass
-class Condition:
-    record: str
-    damaged_groups: list[int]
+def n_arrangements(springs: str, hints: tuple[int] | tuple) -> int:
+    # Base behaviours:
+    #   Found EOL
+    if not springs:
+        return 1 if not hints else 0
+    #   No more hints left
+    if not hints:
+        return 1 if "#" not in springs else 0
 
-    def __repr__(self) -> str:
-        return str(self)
+    result = 0
 
-    def __str__(self) -> str:
-        goal = ",".join([str(g) for g in self.damaged_groups])
-        return f"{self.record} {goal}"
+    # Deal with an operational spring and treat any '?' as one of those
+    if springs[0] in (".", "?"):
+        result += n_arrangements(springs[1:], hints)
 
-    def is_valid(self) -> bool:
-        if "?" in self.record:
-            raise ValueError(
-                f"Cannot check if condition is valid because it has unknowns: '{self}'"
-            )
-        record = [s for s in self.record.split(".") if s]
-        counts = [s.count("#") for s in record]
-        return counts == self.damaged_groups
-
-    @property
-    def n_arrangements(self) -> int:
-        """Return number of possible arrangements"""
-        n_arrangenments = 0
-        for new_record in self._possible_records():
-            if new_record.is_valid():
-                n_arrangenments += 1
-        return n_arrangenments
-
-    def _possible_records(self):
-        n_unknowns = self.record.count("?")
-        n_damaged = self.record.count("#")
-        required_damaged = sum(self.damaged_groups)
-        free_damaged = required_damaged - n_damaged
-        free_operational = n_unknowns - free_damaged
-        free_elements = ["#"] * free_damaged + ["."] * free_operational
-        return (self._generate_record(p) for p in permutations_unique(free_elements))
-
-    def _generate_record(self, free_elements):
-        record = [c for c in self.record]
-        indices_unknowns = [i for i, char in enumerate(record) if char == "?"]
-        for index, element in zip(indices_unknowns, free_elements):
-            record.pop(index)
-            record.insert(index, element)
-        return Condition("".join(record), self.damaged_groups)
+    # Deal with a damaged spring and treat any '?' as one of those
+    if springs[0] in ("#", "?"):
+        if is_next_group_valid(springs, hints[0]):
+            # We need to add a "+ 1" so we avoid allowing the recursion to
+            # start a block right next to the current one
+            result += n_arrangements(springs[hints[0] + 1 :], hints[1:])
+    return result
 
 
-def permutations_unique(iterable):
+def is_next_group_valid(springs: str, hint: int) -> bool:
     """
-    Generator for all possible permutations without duplicates
+    Determine if the next group is valid
+
+    The next group might be invalid if:
+
+      - There are less springs left that ``hint``
+      - There is any operational (``"."``) spring in the next ``hint`` springs.
+      - The next spring after ``hint`` springs (if there is one) is not
+        damaged (``"#"``).
     """
-    if len(iterable) == 1:
-        yield iterable
-    for i in range(len(iterable)):
-        if iterable[i] not in iterable[:i]:
-            a = list(iterable)
-            a[0], a[i] = a[i], a[0]
-            for p in permutations_unique(a[1:]):
-                yield a[:1] + p
+    if len(springs) < hint:
+        return False
+    if "." in springs[:hint]:
+        return False
+    if len(springs) > hint and springs[hint] == "#":
+        return False
+    return True
 
 
 def solve_part1(fname):
     result = 0
     with open(fname, "r") as f:
         for line in f:
-            record, damaged_groups = line.split()
-            damaged_groups = [int(s) for s in damaged_groups.split(",")]
-            condition = Condition(record, damaged_groups)
-            result += condition.n_arrangements
+            springs, hints = line.split()
+            hints = tuple(int(s) for s in hints.split(","))
+            result += n_arrangements(springs, hints)
     return result
 
 
